@@ -14,7 +14,7 @@ class StandardNormal(Distribution):
     def __init__(self, shape):
         super().__init__()
         self._shape = torch.Size(shape)
-        self._log_z = 0.5 * np.prod(shape) * np.log(2 * np.pi)
+        self.register_buffer('_log_z', torch.tensor(0.5 * np.prod(shape) * np.log(2 * np.pi)))
 
     def _log_prob(self, inputs, context):
         # Note: the context is ignored.
@@ -33,7 +33,7 @@ class StandardNormal(Distribution):
         else:
             # The value of the context is ignored, only its size is taken into account.
             context_size = context.shape[0]
-            samples = torch.randn(context_size * num_samples, *self._shape)
+            samples = torch.randn(context_size * num_samples, *self._shape, device=self._log_z.device)
             return torchutils.split_leading_dim(samples, [context_size, num_samples])
 
     def _mean(self, context):
